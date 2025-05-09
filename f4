@@ -1,0 +1,47 @@
+trigger:
+- main
+
+variables:
+  awsServiceConnection: 'your-aws-service-connection-name'  # Make sure this matches your actual connection name
+  awsRegion: 'us-east-2'
+  configRule: 'cat-os-example-tagging-rule'
+
+stages:
+- stage: ComplianceCheck
+  displayName: 'AWS Config Rule Compliance Check'
+  jobs:
+  - job: CheckCompliance
+    displayName: 'Check and Export NON_COMPLIANT Resources'
+    steps:
+    - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
+      displayName: 'Run AWS CLI to Check Compliance'
+      inputs:
+        awsCredentials: $(awsServiceConnection)
+        regionName: $(awsRegion)
+        scriptType: inline
+        inlineScript: |
+          # Export AWS SDK Config Loader to avoid credential issues
+          export AWS_SDK_LOAD_CONFIG=1
+
+          RULE_NAME='$(configRule)'
+          echo "Checking compliance for rule: $RULE_NAME"
+
+          # Fetch NON_COMPLIANT resources
+          COMPLIANCE_DETAILS=$(aws configservice get-compliance-details-by-config-rule \
+            --config-rule-name "$RULE_NAME" \
+            --compliance-types NON_COMPLIANT \
+            --query "EvaluationResults[].{ResourceType:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceType, ResourceId:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceId}" \
+            --output text)
+
+          # Handle results
+          if [ -n "$COMPLIANCE_DETAILS" ]; then
+            echo "NON_COMPLIANT resources found. Creating CSV."
+
+            echo "ResourceType,ResourceId" > non_compliant_resources.csv
+            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> non_compliant_resources.csv
+
+            # Upload CSV as an artifact
+            echo "##vso[task.uploadfile]non_compliant_resources.csv"
+          else
+            echo "All resources are compliant. No output generated."
+          fi
