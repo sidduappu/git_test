@@ -1,5 +1,5 @@
-arn:aws:iam::303962260795:role/service-role/untagged-role-ml1jrhls
-
+Assuming role without credentials (via instance profile)...
 ##[error]CredentialsError: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
-Finishing: Check and Export NON_COMPLIANT Only
+Finishing: Run AWS CLI to Check Compliance
+
 
