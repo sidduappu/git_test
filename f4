@@ -2,9 +2,9 @@ trigger:
 - main
 
 variables:
-  awsServiceConnection: 'your-aws-service-connection-name'  # Make sure this matches your actual connection name
+  awsServiceConnection: 'azdo'
   awsRegion: 'us-east-2'
-  configRule: 'cat-os-example-tagging-rule'
+  configRule: 'Catos-untagged4'
 
 stages:
 - stage: ComplianceCheck
