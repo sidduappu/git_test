@@ -20,9 +20,6 @@ stages:
         regionName: $(awsRegion)
         scriptType: inline
         inlineScript: |
-          # Export AWS SDK Config Loader to avoid credential issues
-          export AWS_SDK_LOAD_CONFIG=1
-
           RULE_NAME='$(configRule)'
           echo "Checking compliance for rule: $RULE_NAME"
 
