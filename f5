@@ -1,1 +1,3 @@
 
+An error occurred (NoSuchConfigRuleException) when calling the GetComplianceDetailsByConfigRule operation: The ConfigRule 'account-part-of-organizations' provided in the request is invalid. Please check the configRule name.
+All resources are compliant. No output generated.
