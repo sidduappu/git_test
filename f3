@@ -1,6 +1,15 @@
-...endpoint defines role-based credentials for role ***.
-##[error]AccessDenied: User: arn:aws:iam::303962260795:user/siddu is not authorized to perform: sts:AssumeRole on resource: ***
-Finishing: Run AWS CLI to Check Compliance
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::303962260795:user/siddu"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
 
 
 
