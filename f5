@@ -1,3 +1,4 @@
+##[error]Unable to process command '##vso[task.uploadfile]non_compliant_resources.csv' successfully. Please reference documentation (http://go.microsoft.com/fwlink/?LinkId=817296)
+##[error]Value cannot be null. (Parameter 'Cannot upload task attachment file, attachment file location is not specified or attachment file does not exist on disk.')
 
-An error occurred (NoSuchConfigRuleException) when calling the GetComplianceDetailsByConfigRule operation: The ConfigRule 'account-part-of-organizations' provided in the request is invalid. Please check the configRule name.
-All resources are compliant. No output generated.
+Finishing: Run AWS CLI to Check Compliance
