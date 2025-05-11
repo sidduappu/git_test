@@ -2,22 +2,25 @@ trigger:
 - main
 
 variables:
-  awsServiceConnection: 'azdo-cfn-cat-os-dev-useast2'
+  awsServiceConnection: 'azdo'
   awsRegion: 'us-east-2'
-  configRule: 'Catos-untagged4'
+  configRule: 'untagged'
 
 stages:
 - stage: ComplianceCheck
+  displayName: 'AWS Config Rule Compliance Check'
   jobs:
   - job: CheckCompliance
+    displayName: 'Check and Export NON_COMPLIANT Resources'
     steps:
     - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-      displayName: 'Check and Export NON_COMPLIANT Only'
+      displayName: 'Run AWS CLI to Check Compliance'
       inputs:
         awsCredentials: $(awsServiceConnection)
         regionName: $(awsRegion)
         scriptType: inline
         inlineScript: |
+          set -e
           RULE_NAME='$(configRule)'
           echo "Checking compliance for rule: $RULE_NAME"
 
@@ -29,11 +32,19 @@ stages:
 
           if [ -n "$COMPLIANCE_DETAILS" ]; then
             echo "NON_COMPLIANT resources found. Creating CSV."
-
-            echo "ResourceType,ResourceId" > non_compliant_resources.csv
-            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> non_compliant_resources.csv
-
-            echo "##vso[task.uploadfile]non_compliant_resources.csv"
+            CSV_FILE="non_compliant_resources.csv"
+            echo "ResourceType,ResourceId" > "$CSV_FILE"
+            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> "$CSV_FILE"
+            echo "##vso[task.setvariable variable=csvExists]true"
           else
             echo "All resources are compliant. No output generated."
+            echo "##vso[task.setvariable variable=csvExists]false"
           fi
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Non-Compliant Resources CSV'
+      condition: eq(variables['csvExists'], 'true')
+      inputs:
+        targetPath: 'non_compliant_resources.csv'
+        artifact: 'non-compliant-resources'
+        publishLocation: 'pipeline'
