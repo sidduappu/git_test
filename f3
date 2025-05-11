@@ -1,31 +1,12 @@
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Action": [
-				"tag:GetResources",
-				"sns:Publish",
-				"logs:CreateLogGroup",
-				"logs:CreateLogStream",
-				"logs:PutLogEvents",
-				"ec2:DescribeRegions",
-				"s3:GetBucketTagging",
-				"s3:ListAllMyBuckets",
-				"s3:GetBucketLocation",
-				"s3:GetBucketTagging",
-				"ec2:DescribeInstances",
-				"ec2:DescribeTags",
-				"config:Describe*",
-				"config:Get*",
-				"config:List*"
-			],
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "s3:PutObject",
-			"Resource": "arn:aws:s3:::cat-os-nexus/*"
-		}
-	]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "lambda.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
 }
