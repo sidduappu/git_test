@@ -11,3 +11,7 @@
         }
     ]
 }
+...endpoint defines role-based credentials for role ***.
+##[error]AccessDenied: Roles may not be assumed by root accounts.
+Finishing: Run AWS CLI to Check Compliance
+
