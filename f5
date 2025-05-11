@@ -1,4 +1,3 @@
-##[error]Unable to process command '##vso[task.uploadfile]non_compliant_resources.csv' successfully. Please reference documentation (http://go.microsoft.com/fwlink/?LinkId=817296)
-##[error]Value cannot be null. (Parameter 'Cannot upload task attachment file, attachment file location is not specified or attachment file does not exist on disk.')
+##[error]Unrecognized value: 'exists'. Located at position 1 within expression: exists('non_compliant_resources.csv'). For more help, refer to https://go.microsoft.com/fwlink/?linkid=842996
+Finishing: Initialize job
 
-Finishing: Run AWS CLI to Check Compliance
