@@ -1,17 +1,2 @@
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "lambda.amazonaws.com",
-                "AWS": "arn:aws:iam::303962260795:user/siddu"
-            },
-            "Action": "sts:AssumeRole"
-        }
-    ]
-}
-...endpoint defines role-based credentials for role ***.
-##[error]AccessDenied: Roles may not be assumed by root accounts.
-Finishing: Run AWS CLI to Check Compliance
-
+An error occurred (NoSuchConfigRuleException) when calling the GetComplianceDetailsByConfigRule operation: The ConfigRule 'account-part-of-organizations' provided in the request is invalid. Please check the configRule name.
+All resources are compliant. No output generated.
