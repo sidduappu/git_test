@@ -1,6 +1,7 @@
-Assuming role without credentials (via instance profile)...
-##[error]CredentialsError: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1
+...endpoint defines role-based credentials for role ***.
+##[error]AccessDenied: User: arn:aws:iam::303962260795:user/siddu is not authorized to perform: sts:AssumeRole on resource: ***
 Finishing: Run AWS CLI to Check Compliance
+
 
 
 
