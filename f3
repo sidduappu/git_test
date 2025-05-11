@@ -26,12 +26,6 @@
 			"Effect": "Allow",
 			"Action": "s3:PutObject",
 			"Resource": "arn:aws:s3:::cat-os-nexus/*"
-		},
-		{
-			"Sid": "Statement1",
-			"Effect": "Allow",
-			"Action": [],
-			"Resource": []
 		}
 	]
 }
