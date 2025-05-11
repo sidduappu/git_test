@@ -20,6 +20,7 @@ stages:
         regionName: $(awsRegion)
         scriptType: inline
         inlineScript: |
+          set -e
           RULE_NAME='$(configRule)'
           echo "Checking compliance for rule: $RULE_NAME"
 
@@ -33,12 +34,17 @@ stages:
           # Handle results
           if [ -n "$COMPLIANCE_DETAILS" ]; then
             echo "NON_COMPLIANT resources found. Creating CSV."
-
-            echo "ResourceType,ResourceId" > non_compliant_resources.csv
-            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> non_compliant_resources.csv
-
-            # Upload CSV as an artifact
-            echo "##vso[task.uploadfile]non_compliant_resources.csv"
+            CSV_FILE="non_compliant_resources.csv"
+            echo "ResourceType,ResourceId" > "$CSV_FILE"
+            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> "$CSV_FILE"
           else
             echo "All resources are compliant. No output generated."
           fi
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Non-Compliant Resources CSV'
+      condition: exists('non_compliant_resources.csv')
+      inputs:
+        targetPath: 'non_compliant_resources.csv'
+        artifact: 'non-compliant-resources'
+        publishLocation: 'pipeline'
