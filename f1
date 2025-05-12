@@ -4,7 +4,7 @@ trigger:
 variables:
   awsServiceConnection: 'azdo'
   awsRegion: 'us-east-2'
-  configRule: 'untagged'
+  configRule: 'unatgged'
 
 stages:
 - stage: ComplianceCheck
