@@ -1,50 +1,41 @@
-trigger:
-- main
+import boto3
+import csv
+import os
+from datetime import datetime
 
-variables:
-  awsServiceConnection: 'azdo'
-  awsRegion: 'us-east-2'
-  configRule: 'unatgged'
+config_client = boto3.client('config')
+s3_client = boto3.client('s3')
 
-stages:
-- stage: ComplianceCheck
-  displayName: 'AWS Config Rule Compliance Check'
-  jobs:
-  - job: CheckCompliance
-    displayName: 'Check and Export NON_COMPLIANT Resources'
-    steps:
-    - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-      displayName: 'Run AWS CLI to Check Compliance'
-      inputs:
-        awsCredentials: $(awsServiceConnection)
-        regionName: $(awsRegion)
-        scriptType: inline
-        inlineScript: |
-          set -e
-          RULE_NAME='$(configRule)'
-          echo "Checking compliance for rule: $RULE_NAME"
+CONFIG_RULE_NAME = os.environ['CONFIG_RULE_NAME']
+S3_BUCKET = os.environ['S3_BUCKET']
 
-          COMPLIANCE_DETAILS=$(aws configservice get-compliance-details-by-config-rule \
-            --config-rule-name "$RULE_NAME" \
-            --compliance-types NON_COMPLIANT \
-            --query "EvaluationResults[].{ResourceType:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceType, ResourceId:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceId}" \
-            --output text)
+def lambda_handler(event, context):
+    response = config_client.get_compliance_details_by_config_rule(
+        ConfigRuleName=CONFIG_RULE_NAME,
+        ComplianceTypes=['NON_COMPLIANT']
+    )
+    
+    evaluations = response.get('EvaluationResults', [])
+    if not evaluations:
+        print("All resources are compliant.")
+        return {"status": "compliant"}
 
-          if [ -n "$COMPLIANCE_DETAILS" ]; then
-            echo "NON_COMPLIANT resources found. Creating CSV."
-            CSV_FILE="non_compliant_resources.csv"
-            echo "ResourceType,ResourceId" > "$CSV_FILE"
-            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> "$CSV_FILE"
-            echo "##vso[task.setvariable variable=csvExists]true"
-          else
-            echo "All resources are compliant. No output generated."
-            echo "##vso[task.setvariable variable=csvExists]false"
-          fi
+    file_name = f"non_compliant_resources_{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+    local_file = f"/tmp/{file_name}"
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Non-Compliant Resources CSV'
-      condition: eq(variables['csvExists'], 'true')
-      inputs:
-        targetPath: 'non_compliant_resources.csv'
-        artifact: 'non-compliant-resources'
-        publishLocation: 'pipeline'
+    with open(local_file, 'w', newline='') as csvfile:
+        fieldnames = ['ResourceType', 'ResourceId']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for eval_result in evaluations:
+            qualifier = eval_result['EvaluationResultIdentifier']['EvaluationResultQualifier']
+            writer.writerow({
+                'ResourceType': qualifier['ResourceType'],
+                'ResourceId': qualifier['ResourceId']
+            })
+
+    s3_client.upload_file(local_file, S3_BUCKET, file_name)
+    print(f"Uploaded {file_name} to s3://{S3_BUCKET}/{file_name}")
+
+    return {"status": "non_compliant", "file": file_name}
