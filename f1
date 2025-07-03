@@ -1,41 +1,80 @@
 import boto3
 import csv
-import os
+import io
 from datetime import datetime
-
-config_client = boto3.client('config')
-s3_client = boto3.client('s3')
-
-CONFIG_RULE_NAME = os.environ['CONFIG_RULE_NAME']
-S3_BUCKET = os.environ['S3_BUCKET']
+from botocore.exceptions import ClientError
 
 def lambda_handler(event, context):
-    response = config_client.get_compliance_details_by_config_rule(
-        ConfigRuleName=CONFIG_RULE_NAME,
-        ComplianceTypes=['NON_COMPLIANT']
-    )
-    
-    evaluations = response.get('EvaluationResults', [])
-    if not evaluations:
-        print("All resources are compliant.")
-        return {"status": "compliant"}
+    region = 'us-east-2'
+    required_tags = ['applicationid', 'applicationname']
+    s3_output_bucket = 'cat-os-nexus'  # Change to your bucket name
 
-    file_name = f"non_compliant_resources_{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
-    local_file = f"/tmp/{file_name}"
+    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%SZ')
+    output_key = f'tagging-scan-results/{timestamp}.csv'
 
-    with open(local_file, 'w', newline='') as csvfile:
-        fieldnames = ['ResourceType', 'ResourceId']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+    s3 = boto3.client('s3')
+    ec2 = boto3.client('ec2', region_name=region)
 
-        for eval_result in evaluations:
-            qualifier = eval_result['EvaluationResultIdentifier']['EvaluationResultQualifier']
-            writer.writerow({
-                'ResourceType': qualifier['ResourceType'],
-                'ResourceId': qualifier['ResourceId']
-            })
+    results = []
 
-    s3_client.upload_file(local_file, S3_BUCKET, file_name)
-    print(f"Uploaded {file_name} to s3://{S3_BUCKET}/{file_name}")
+    # --- Check S3 Buckets ---
+    try:
+        buckets_response = s3.list_buckets()
+        for bucket in buckets_response['Buckets']:
+            bucket_name = bucket['Name']
+            try:
+                location = s3.get_bucket_location(Bucket=bucket_name)['LocationConstraint'] or 'us-east-1'
+                if location != region:
+                    continue
 
-    return {"status": "non_compliant", "file": file_name}
+                tagging = s3.get_bucket_tagging(Bucket=bucket_name)
+                tags = tagging['TagSet']
+                tag_dict = {tag['Key']: tag['Value'].strip() for tag in tags}
+
+                if not all(tag_dict.get(key) for key in required_tags):
+                    results.append(['S3', bucket_name, 'Missing required tags or empty values'])
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'NoSuchTagSet':
+                    results.append(['S3', bucket_name, 'No tags found'])
+                else:
+                    print(f"Error checking tags for S3 bucket {bucket_name}: {e}")
+    except Exception as e:
+        print(f"Failed to process S3 buckets: {e}")
+
+    # --- Check EC2 Instances ---
+    try:
+        instances_response = ec2.describe_instances()
+        for reservation in instances_response['Reservations']:
+            for instance in reservation['Instances']:
+                instance_id = instance['InstanceId']
+                tags = instance.get('Tags', [])
+                tag_dict = {tag['Key']: tag['Value'].strip() for tag in tags}
+
+                if not all(tag_dict.get(key) for key in required_tags):
+                    results.append(['EC2', instance_id, 'Missing required tags or empty values'])
+    except ClientError as e:
+        print(f"Error describing EC2 instances: {e}")
+
+    # --- Generate CSV content ---
+    csv_buffer = io.StringIO()
+    csv_writer = csv.writer(csv_buffer)
+    csv_writer.writerow(['ResourceType', 'ResourceId', 'Reason'])
+    for row in results:
+        csv_writer.writerow(row)
+
+    # --- Upload CSV to S3 ---
+    try:
+        s3.put_object(
+            Bucket=s3_output_bucket,
+            Key=output_key,
+            Body=csv_buffer.getvalue(),
+            ContentType='text/csv'
+        )
+        print(f"Results uploaded to s3://{s3_output_bucket}/{output_key}")
+    except ClientError as e:
+        print(f"Error uploading results to S3: {e}")
+
+    return {
+        'statusCode': 200,
+        'body': f'Results uploaded to s3://{s3_output_bucket}/{output_key}'
+    }
