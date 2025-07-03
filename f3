@@ -1,50 +1,247 @@
-trigger:
-- main
+import boto3
+import csv
+import io
+from datetime import datetime
+from botocore.exceptions import ClientError
 
-variables:
-  awsServiceConnection: 'azdo'
-  awsRegion: 'us-east-2'
-  configRule: 'untagged'
+region = 'us-east-2'
+required_tags = ['applicationid', 'applicationname']
+s3_output_bucket = 'cat-os-nexus'  # <-- Your output bucket
+resource_types = []
 
-stages:
-- stage: ComplianceCheck
-  displayName: 'AWS Config Rule Compliance Check'
-  jobs:
-  - job: CheckCompliance
-    displayName: 'Check and Export NON_COMPLIANT Resources'
-    steps:
-    - task: AmazonWebServices.aws-vsts-tools.AWSShellScript.AWSShellScript@1
-      displayName: 'Run AWS CLI to Check Compliance'
-      inputs:
-        awsCredentials: $(awsServiceConnection)
-        regionName: $(awsRegion)
-        scriptType: inline
-        inlineScript: |
-          set -e
-          RULE_NAME='$(configRule)'
-          echo "Checking compliance for rule: $RULE_NAME"
+def has_required_tags(tag_dict):
+    return all(tag_dict.get(k) for k in required_tags)
 
-          # Fetch NON_COMPLIANT resources
-          COMPLIANCE_DETAILS=$(aws configservice get-compliance-details-by-config-rule \
-            --config-rule-name "$RULE_NAME" \
-            --compliance-types NON_COMPLIANT \
-            --query "EvaluationResults[].{ResourceType:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceType, ResourceId:EvaluationResultIdentifier.EvaluationResultQualifier.ResourceId}" \
-            --output text)
+def add_result(results, resource_type, resource_id, reason):
+    results.append([resource_type, resource_id, reason])
 
-          # Handle results
-          if [ -n "$COMPLIANCE_DETAILS" ]; then
-            echo "NON_COMPLIANT resources found. Creating CSV."
-            CSV_FILE="non_compliant_resources.csv"
-            echo "ResourceType,ResourceId" > "$CSV_FILE"
-            echo "$COMPLIANCE_DETAILS" | awk '{print $1","$2}' >> "$CSV_FILE"
-          else
-            echo "All resources are compliant. No output generated."
-          fi
+def get_tag_dict(tags):
+    if isinstance(tags, list):
+        return {tag['Key']: tag.get('Value', '').strip() for tag in tags}
+    elif isinstance(tags, dict):
+        return {k: v.strip() for k, v in tags.items()}
+    return {}
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Non-Compliant Resources CSV'
-      condition: exists('non_compliant_resources.csv')
-      inputs:
-        targetPath: 'non_compliant_resources.csv'
-        artifact: 'non-compliant-resources'
-        publishLocation: 'pipeline'
+def lambda_handler(event, context):
+    results = []
+
+    # Initialize boto3 clients
+    s3 = boto3.client('s3')
+    ec2 = boto3.client('ec2', region_name=region)
+    rds = boto3.client('rds', region_name=region)
+    lamb = boto3.client('lambda', region_name=region)
+    secrets = boto3.client('secretsmanager', region_name=region)
+    logs = boto3.client('logs', region_name=region)
+    efs = boto3.client('efs', region_name=region)
+    ecr = boto3.client('ecr', region_name=region)
+    ecs = boto3.client('ecs', region_name=region)
+    sfn = boto3.client('stepfunctions', region_name=region)
+    sns = boto3.client('sns', region_name=region)
+    sqs = boto3.client('sqs', region_name=region)
+    kinesis = boto3.client('kinesis', region_name=region)
+    ssm = boto3.client('ssm', region_name=region)
+    elb = boto3.client('elbv2', region_name=region)
+    cw = boto3.client('cloudwatch', region_name=region)
+
+    # ---- S3 Buckets ----
+    try:
+        for bucket in s3.list_buckets()['Buckets']:
+            bucket_name = bucket['Name']
+            try:
+                loc = s3.get_bucket_location(Bucket=bucket_name).get('LocationConstraint') or 'us-east-1'
+                if loc != region:
+                    continue
+                tags = s3.get_bucket_tagging(Bucket=bucket_name).get('TagSet', [])
+                tag_dict = get_tag_dict(tags)
+                if not has_required_tags(tag_dict):
+                    add_result(results, 'S3', bucket_name, 'Missing required tags or empty values')
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'NoSuchTagSet':
+                    add_result(results, 'S3', bucket_name, 'No tags found')
+    except Exception as e:
+        print(f"S3 Error: {e}")
+
+    # ---- EC2 Instances ----
+    try:
+        for res in ec2.describe_instances()['Reservations']:
+            for inst in res['Instances']:
+                iid = inst['InstanceId']
+                tags = inst.get('Tags', [])
+                tag_dict = get_tag_dict(tags)
+                if not has_required_tags(tag_dict):
+                    add_result(results, 'EC2', iid, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"EC2 Error: {e}")
+
+    # ---- RDS DBInstances ----
+    try:
+        for db in rds.describe_db_instances()['DBInstances']:
+            arn = db['DBInstanceArn']
+            tags = rds.list_tags_for_resource(ResourceName=arn).get('TagList', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'RDS::DBInstance', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"RDS Error: {e}")
+
+    # ---- Lambda Functions ----
+    try:
+        for fn in lamb.list_functions()['Functions']:
+            arn = fn['FunctionArn']
+            tags = lamb.list_tags(Resource=arn).get('Tags', {})
+            if not has_required_tags(tags):
+                add_result(results, 'Lambda', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"Lambda Error: {e}")
+
+    # ---- Secrets Manager ----
+    try:
+        for secret in secrets.list_secrets()['SecretList']:
+            arn = secret['ARN']
+            tags = secrets.list_tags_for_resource(SecretId=arn).get('Tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'SecretsManager', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"SecretsManager Error: {e}")
+
+    # ---- CloudWatch Logs ----
+    try:
+        for lg in logs.describe_log_groups()['logGroups']:
+            name = lg['logGroupName']
+            tags = logs.list_tags_log_group(logGroupName=name).get('tags', {})
+            if not has_required_tags(tags):
+                add_result(results, 'Logs::LogGroup', name, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"CloudWatch Logs Error: {e}")
+
+    # ---- EFS File Systems ----
+    try:
+        for fs in efs.describe_file_systems()['FileSystems']:
+            fs_id = fs['FileSystemId']
+            tags = efs.describe_tags(FileSystemId=fs_id).get('Tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'EFS', fs_id, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"EFS Error: {e}")
+
+    # ---- ECR Repositories ----
+    try:
+        for repo in ecr.describe_repositories()['repositories']:
+            arn = repo['repositoryArn']
+            tags = ecr.list_tags_for_resource(resourceArn=arn).get('tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'ECR', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"ECR Error: {e}")
+
+    # ---- ECS Clusters ----
+    try:
+        for cluster in ecs.list_clusters()['clusterArns']:
+            tags = ecs.list_tags_for_resource(resourceArn=cluster).get('tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'ECS::Cluster', cluster, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"ECS Error: {e}")
+
+    # ---- Step Functions ----
+    try:
+        for sm in sfn.list_state_machines()['stateMachines']:
+            arn = sm['stateMachineArn']
+            tags = sfn.list_tags_for_resource(resourceArn=arn).get('tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'StepFunctions', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"Step Functions Error: {e}")
+
+    # ---- SNS Topics ----
+    try:
+        for topic in sns.list_topics()['Topics']:
+            arn = topic['TopicArn']
+            tags = sns.list_tags_for_resource(ResourceArn=arn).get('Tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'SNS', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"SNS Error: {e}")
+
+    # ---- SQS Queues ----
+    try:
+        for url in sqs.list_queues().get('QueueUrls', []):
+            arn = sqs.get_queue_attributes(QueueUrl=url, AttributeNames=['QueueArn'])['Attributes']['QueueArn']
+            tags = sqs.list_queue_tags(QueueUrl=url).get('Tags', {})
+            if not has_required_tags(tags):
+                add_result(results, 'SQS', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"SQS Error: {e}")
+
+    # ---- Kinesis Streams ----
+    try:
+        for stream in kinesis.list_streams()['StreamNames']:
+            arn = kinesis.describe_stream(StreamName=stream)['StreamDescription']['StreamARN']
+            tags = kinesis.list_tags_for_stream(StreamName=stream).get('Tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'Kinesis', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"Kinesis Error: {e}")
+
+    # ---- SSM Parameters ----
+    try:
+        for param in ssm.describe_parameters()['Parameters']:
+            arn = f"arn:aws:ssm:{region}:{param['ARN'].split(':')[4]}:parameter{param['Name']}"
+            tags = ssm.list_tags_for_resource(ResourceType='Parameter', ResourceId=param['Name']).get('TagList', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'SSM', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"SSM Error: {e}")
+
+    # ---- ELBv2 Load Balancers ----
+    try:
+        for lb in elb.describe_load_balancers()['LoadBalancers']:
+            arn = lb['LoadBalancerArn']
+            tags = elb.describe_tags(ResourceArns=[arn])['TagDescriptions'][0].get('Tags', [])
+            tag_dict = get_tag_dict(tags)
+            if not has_required_tags(tag_dict):
+                add_result(results, 'ELBv2', arn, 'Missing required tags or empty values')
+    except Exception as e:
+        print(f"ELBv2 Error: {e}")
+
+    # ---- CloudWatch Alarms ----
+    try:
+        for alarm in cw.describe_alarms()['MetricAlarms']:
+            arn = f"arn:aws:cloudwatch:{region}:{alarm['AlarmArn'].split(':')[4]}:alarm:{alarm['AlarmName']}"
+            # CloudWatch doesn’t support list_tags_for_resource directly; skipping tags
+            add_result(results, 'CloudWatch::Alarm', arn, 'Manual tag check required')
+    except Exception as e:
+        print(f"CloudWatch Error: {e}")
+
+    # ---- Upload CSV to S3 ----
+    try:
+        timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%SZ')
+        output_key = f'tagging-scan-results/{timestamp}.csv'
+
+        csv_buffer = io.StringIO()
+        writer = csv.writer(csv_buffer)
+        writer.writerow(['ResourceType', 'ResourceId', 'Reason'])
+        writer.writerows(results)
+
+        s3.put_object(
+            Bucket=s3_output_bucket,
+            Key=output_key,
+            Body=csv_buffer.getvalue(),
+            ContentType='text/csv'
+        )
+        print(f"✅ Results uploaded to s3://{s3_output_bucket}/{output_key}")
+        return {
+            'statusCode': 200,
+            'body': f"Results uploaded to s3://{s3_output_bucket}/{output_key}"
+        }
+    except Exception as e:
+        print(f"Upload Error: {e}")
+        return {'statusCode': 500, 'body': str(e)}
