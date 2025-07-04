@@ -1,0 +1,63 @@
+import boto3
+import csv
+import io
+from datetime import datetime
+
+# Initialize boto3 clients
+s3 = boto3.client('s3')
+resource_explorer = boto3.client('resource-explorer-2', region_name='us-east-2')
+
+# Constants
+VIEW_ARN = "arn:aws:resource-explorer-2:us-east-2:303962260795:view/all-resources/dab03ef8-28f5-45ab-8af2-3a7fe1ecc5b4"
+S3_BUCKET = "your-s3-bucket-name"  # ✅ Replace with your bucket
+S3_PREFIX = "tagged-resources-report/"
+
+def search_resources_with_tags():
+    query = 'tag.key:applicationid tag.key:applicationname'
+    resources = []
+
+    try:
+        paginator = resource_explorer.get_paginator('search')
+        for page in paginator.paginate(QueryString=query, ViewArn=VIEW_ARN):
+            for res in page.get('Resources', []):
+                resources.append({
+                    "Arn": res.get("Arn"),
+                    "LastReportedAt": res.get("LastReportedAt", "")
+                })
+        return resources
+    except Exception as e:
+        print(f"Search failed: {e}")
+        return []
+
+def save_to_s3(resource_data, bucket, key):
+    try:
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["ARN", "LastReportedAt"])
+        for r in resource_data:
+            writer.writerow([r["Arn"], r["LastReportedAt"]])
+        
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=output.getvalue()
+        )
+        print(f"CSV uploaded to s3://{bucket}/{key}")
+    except Exception as e:
+        print(f"Failed to upload CSV: {e}")
+
+def lambda_handler(event, context):
+    print("Searching for resources with 'applicationid' and 'applicationname' tags...")
+    tagged_resources = search_resources_with_tags()
+    print(f"Found {len(tagged_resources)} tagged resources")
+
+    timestamp = datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
+    s3_key = f"{S3_PREFIX}tagged_{timestamp}.csv"
+
+    save_to_s3(tagged_resources, S3_BUCKET, s3_key)
+
+    return {
+        "statusCode": 200,
+        "taggedResourceCount": len(tagged_resources),
+        "s3Key": s3_key
+    }
