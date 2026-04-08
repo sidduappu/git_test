@@ -1,37 +1,38 @@
-1. Siddamshetty Saharshitha
-	•	Fit: Partial
-	•	Strengths: Good cloud exposure (Azure, AWS), Infra/Admin experience
-	•	Gaps: Limited DevOps hands-on (CI/CD pipelines, YAML), no IaC or Kubernetes
-	•	Recommendation: Suitable for Cloud/Infra roles, not core DevOps
+Hi Suresha,
 
-⸻
+Please find below my feedback on the Azure DevOps profiles:
 
-2. Ankita AM
-	•	Fit: Partial
-	•	Strengths: Java, APIs, Azure basics, DevOps awareness
-	•	Gaps: No strong CI/CD pipeline experience, lacks IaC and container exposure
-	•	Recommendation: Entry-level DevOps, needs hands-on experience
+1. Siddamshetty Saharshitha  
+   Fit: Partial  
+   Strengths: Good cloud exposure (Azure, AWS), Infra/Admin experience  
+   Gaps: Limited DevOps hands-on (CI/CD pipelines, YAML), no IaC or Kubernetes  
+   Recommendation: Suitable for Cloud/Infra roles  
 
-⸻
+2. Ankita AM  
+   Fit: Partial  
+   Strengths: Java, APIs, Azure basics  
+   Gaps: Limited CI/CD experience, no IaC or container exposure  
+   Recommendation: Entry-level DevOps with upskilling  
 
-3. Vaasavi Y.S
-	•	Fit: Not suitable
-	•	Strengths: Testing, automation (Selenium), Azure IoT
-	•	Gaps: No DevOps, CI/CD, or infrastructure experience
-	•	Recommendation: More aligned to QA/Testing role
+3. Vaasavi Y.S  
+   Fit: Not suitable  
+   Strengths: Testing, automation (Selenium), Azure IoT  
+   Gaps: No DevOps/CI/CD experience  
+   Recommendation: Suitable for QA/Testing roles  
 
-⸻
+4. Sheenam Setia  
+   Fit: Good  
+   Strengths: AWS DevOps, Jenkins, Ansible, Terraform, Azure DevOps  
+   Gaps: Azure-specific depth not fully clear  
+   Recommendation: Suitable for DevOps role  
 
-4. Sheenam Setia ✅ (Best profile)
-	•	Fit: Good
-	•	Strengths: AWS DevOps, Jenkins, Ansible, Terraform, Azure DevOps
-	•	Gaps: Azure-specific depth not fully clear
-	•	Recommendation: Suitable for DevOps role
+5. Bhupalam Tejaswini  
+   Fit: Not suitable  
+   Strengths: Power BI, SQL, reporting tools  
+   Gaps: No DevOps/CI/CD or cloud engineering experience  
+   Recommendation: Suitable for Data/BI roles  
 
-⸻
+Overall, only Sheenam Setia aligns well with the DevOps requirements, while others are more suited for adjacent roles.
 
-5. Bhupalam Tejaswini
-	•	Fit: Not suitable
-	•	Strengths: Power BI, SQL, reporting tools
-	•	Gaps: No DevOps, CI/CD, or cloud engineering experience
-	•	Recommendation: Suitable for Data/BI roles
+Thanks,  
+[Your Name]
