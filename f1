@@ -1,12 +1,37 @@
-Profile: Siddamshetty Saharshitha
-	•	Overall: Moderate fit for Azure DevOps role
-	•	Strengths:
-	•	Good exposure to Azure, AWS, and cloud services
-	•	Experience in infrastructure and administration
-	•	Familiar with tools like Jira, ServiceNow
-	•	Gaps:
-	•	Limited visibility on Azure DevOps hands-on (CI/CD pipelines, YAML)
-	•	No clear experience in automation (Terraform/Bicep)
-	•	Container/Kubernetes experience not mentioned
-	•	Recommendation:
-	•	Suitable for Cloud/Infra support roles
+1. Siddamshetty Saharshitha
+	•	Fit: Partial
+	•	Strengths: Good cloud exposure (Azure, AWS), Infra/Admin experience
+	•	Gaps: Limited DevOps hands-on (CI/CD pipelines, YAML), no IaC or Kubernetes
+	•	Recommendation: Suitable for Cloud/Infra roles, not core DevOps
+
+⸻
+
+2. Ankita AM
+	•	Fit: Partial
+	•	Strengths: Java, APIs, Azure basics, DevOps awareness
+	•	Gaps: No strong CI/CD pipeline experience, lacks IaC and container exposure
+	•	Recommendation: Entry-level DevOps, needs hands-on experience
+
+⸻
+
+3. Vaasavi Y.S
+	•	Fit: Not suitable
+	•	Strengths: Testing, automation (Selenium), Azure IoT
+	•	Gaps: No DevOps, CI/CD, or infrastructure experience
+	•	Recommendation: More aligned to QA/Testing role
+
+⸻
+
+4. Sheenam Setia ✅ (Best profile)
+	•	Fit: Good
+	•	Strengths: AWS DevOps, Jenkins, Ansible, Terraform, Azure DevOps
+	•	Gaps: Azure-specific depth not fully clear
+	•	Recommendation: Suitable for DevOps role
+
+⸻
+
+5. Bhupalam Tejaswini
+	•	Fit: Not suitable
+	•	Strengths: Power BI, SQL, reporting tools
+	•	Gaps: No DevOps, CI/CD, or cloud engineering experience
+	•	Recommendation: Suitable for Data/BI roles
