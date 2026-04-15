@@ -1,11 +1,24 @@
-Can you please check these profiles for Azure dev ops role 
+Hi Suresha,
 
-Designation	Releasing Practice	Technical Skills
-852364	Sampath Selvaraju	Chennai	SA	Infra. Technology Specialist	CTI-CIS Cloud Services	Azure Public Cloud Admin,Generative AI,RSA Multi-factor Authntication,Azure DevOps,Linux - Redhat Administration,Virtualization,Service Now,Citrix Password Manager,Amazon Web Services,System Services,Maven,Azure Storage,Cisco Cloud Centre (CMP),Linux Device Driver,open VMS,Azure,ServiceNow Enterp Service Mgmt,AWS Machine Learning,EMC Storage Administration,Terrafor,Microsoft Azure,Tools,Azure Admin,Redhat Linux Administration,Service Configuration,Ansible,Prompt Engineering,Docker Container,Migration Planning,Linux,Monitoring,Application migration,CA Advanced Authentication,Kubernetes,Azure Architecture,AWS Public Cloud Admin
-2301673	Santha Kumar Bandaru	Chennai	A	Associate	CTI-CIS Infra Managed Svcs	Zenoss,Azure Key Vault,Azure SQL,Azure App Insights,AWS,Azure DevOps,Azure Synapse Spark Pool,ITIL V4,Cosmos DB,Azure Logic Apps,Windows Server Admin,Redhat Linux Administration,Azure Services,Azure Event Grid,Azure Storage,Azure SQL DB,Azure Data Lake Store,Cloud Platform Security,Azure LogicApp,Azure AI,SQL,Google Cloud services,Azure Synapse SQL Pool,Azure Cosmos DB,Microsoft Azure,mySQL,Azure,Cloud Computing,Azure SSO,Database Engineering,GCP,Azure Monitor,MS Office,Azure Data,Azure SynapseServerlessSQLPool,Generative AI,Networking,Azure Data Factory,Azure Platform,Google Cloud Platform,Synapse Pipelines,Azure API Management,Azure Machine Learning,Database and SQL,Physical Data Modelling,Azure Public Cloud Admin,Azure Service Bus,Azure AKS,Azure CLI,Azure Event Hub,Azure AD,Cloud Domains,Azure Functions,Azure Solutions,Powershell,Azure App Service,TensorFlow,Azure Synapse DataWarehouse,Database and SQL (T-SQL)
-931196	Bharath Kalyanaraman	Chennai	A	Sr. Infra Developer	CTI-CIS Cloud Services	Azure DevOps,Microsoft Teams,Azure Architecture,Microsoft Azure,ITIL V4,Microsoft 365 Security,Azure Admin,Oracle Cloud Infrastructure,Azure Data,Generative AI,Google Vertex AI,Jira,Java,Artifactory,Release Orchestration,Release Automation,Unix Shell Scripting,MS Exchange Server,Maven,Cyber Security & Cloud,Bamboo,TortiseSVN,DevOps,AYS Service Now,SNOW,Release Management,Nvidia,Shell scripting,Azure,Office 365,Google Cloud - Big Data,Collaboration-Office 365 Suite,Azure Public Cloud Admin,Azure AD,Bitbucket,MS CRM Power Apps,AI enabled chatbot
-879775	V Padmavaty	Chennai	A	Tech lead	SPE-ADM ISMO	Unix Commands,ITIL,Windows Server Admin,MS Office,O365 Identity management,Windows Azure Pack,Azure DevOps,Google Cloud - Compute,Google Cloud - Storage,Lovable,Azure Kubernetes Services,windows administration,Prompt Engineering,AI Agents,Python,Splunk,GitHub Copilot,Unix Scripting,Google Cloud-Machine Learning,Generative AI,Jira
-938214	Soundharyaa A S U	Chennai	A	Associate	CTI-AIA	SQL Scripting,Azure Data,Azure,Artificial Intelligence,Azure DevOps,SQL Server Management Studio,Azure Data Factory,SQL,SQL Server,Azure DevOps Pipeline,.Net Programming-C# .Net,MS SQL Server Administration,Apache Hadoop,Generative AI,Python,Informatica Powercenter,Azure Public Cloud Admin,Oracle,Azure Data Factory ETL,.Net Framework,JavaScript,ANSI SQL,ETL
-525130	Sathish kumar K	Chennai	SA	Infra Dev Specialist	SPE-QE & A	Azure DevOps,mySQL,Azure DevOps Server,CheckMarx,Terraform,Jira,Confluence,AWS,Jenkins,ITIL V4,GITHUB,Bitbucket,Software Design & Development,DevOps Skills/Concepts,Software Security Requirements,GIT,JSON,Terrafor,Bamboo,dynatrace,SONARQUBE,Github (DevOps),M365 Copilot,Jenkins CI
-2482541	Saranya Venkatesan	Chennai	SA	Sr. Associate - Projects	CTI-AIA	SQL queries,SQL Database,SQL,Azure Pipelines,Azure Synapse Spark Pool,Data Factory,Power BI Report Builder,SQL Server Management Studio,Azure Storage,Azure DevOps,SQL Server,Azure Data Factory
-2089886	Lavanya Dhanarasu	Chennai	A	Associate	SPE-IDE CDE	Software Security Principles,UI,Restful APIs,CSS3,Azure DevOps,JavaScript,Advanced JavaScript,jQuery,HTML,CSS,HTML 5,Angular JS,Type Script,Angular 2 - 8,JavaScript ES5/ES6,React Js,React,Angular 9-12,Sec Practices - OWASP Top 10,TypeScript,BootStrap,Angular
+I have reviewed the profiles shared for the Azure DevOps role.
+
+Based on the evaluation of relevant DevOps skills such as CI/CD, Azure DevOps pipelines, Infrastructure as Code, containerization, and cloud exposure, please find the summary below:
+
+Strong Matches (Recommended for Azure DevOps Role):
+- Sathish Kumar K – Strong DevOps profile with hands-on experience in Azure DevOps, Terraform, Jenkins, GitHub, SonarQube, and CI/CD practices. Best fit for DevOps Engineer role.
+- Bharath Kalyanaraman – Good experience in Azure DevOps, release orchestration, Maven, and Artifactory. Suitable for DevOps/Release Engineer role.
+- Sampath Selvaraju – Strong in cloud infrastructure with Azure DevOps, Terraform, Docker, and Kubernetes. Suitable for Cloud/Platform DevOps role.
+
+Moderate Fit (Can be considered with some upskilling):
+- Santha Kumar Bandaru – Strong Azure cloud experience but limited core DevOps tool exposure.
+- Padmavaty V – Has Azure DevOps and Kubernetes knowledge; requires more CI/CD depth.
+- Saranya Venkatesan – More aligned towards data engineering with limited DevOps exposure.
+
+Not Suitable for Azure DevOps Role (Currently):
+- Soundharyaa A S U – Primarily data/ETL focused.
+- Lavanya Dhanarasu – Frontend development profile with minimal DevOps alignment.
+
+Please let me know if you would like to proceed with shortlisting or need further detailed evaluation/interview questions.
+
+Thanks & Regards,  
+[Your Name]
